@@ -3,28 +3,51 @@ package com.example;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
-public class App 
-{
-    public static void main(String[] args) throws InterruptedException
-    {
-        WebDriver driver = new ChromeDriver();
+import java.time.Duration;
 
-        driver.get("https://practicetestautomation.com/practice-test-login/");
-        driver.manage().window().maximize();
+public class App {
+    public static void main(String[] args) {
 
-        Thread.sleep(2000); // wait 2 seconds
+        WebDriverManager.chromedriver().setup();
 
-        driver.findElement(By.id("username")).sendKeys("student");
+        ChromeOptions options = new ChromeOptions();
+        boolean headless = Boolean.parseBoolean(System.getProperty("headless", "true"));
 
-        Thread.sleep(2000); // wait 2 seconds
+        if (headless) {
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+        }
 
-        driver.findElement(By.id("password")).sendKeys("Password123");
+        options.addArguments("--window-size=1920,1080");
 
-        Thread.sleep(2000); // wait 2 seconds
+        WebDriver driver = new ChromeDriver(options);
 
-        driver.findElement(By.id("submit")).click();
+        try {
+            driver.get("https://practicetestautomation.com/practice-test-login/");
 
-        Thread.sleep(3000); // wait 3 seconds before closing
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")))
+                .sendKeys("student");
+
+            driver.findElement(By.id("password"))
+                .sendKeys("Password123");
+
+            driver.findElement(By.id("submit")).click();
+
+            wait.until(ExpectedConditions.urlContains("logged-in-successfully"));
+
+            System.out.println("Login Successful!");
+            System.out.println("Page Title: " + driver.getTitle());
+
+        } finally {
+            driver.quit();
+        }
     }
 }
